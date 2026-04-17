@@ -4,9 +4,13 @@
 #include <thread>
 #include <windows.h>
 #include <iostream>
+#define STB_IMAGE_IMPLEMENTATION
 
 // ---------========= Własne pliki nagłówkowe =========----------
 #include "./src/env.h"
+#include "./src/textureLoader.h"
+#include "./src/shaderManager.h"
+#include "./src/renderer.h"
 // ---------===========================================----------
 
 int main() {
@@ -33,14 +37,23 @@ int main() {
   }
   glfwMakeContextCurrent(window);
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) return -1;
+
+  unsigned int fontTextureID = loadTexture("./resources/font/font01.png");
+  ShaderManager shader("./src/vertex_shader.glsl", "./src/fragment_shader.glsl");
+  Renderer renderer(fontTextureID, &shader);
+
   glViewport(0, 0, env.windowWidth, env.windowHeight);
   glfwSwapInterval(0);
 
   glClearColor((float)(135.0f / 255.0f), (float)(206.0f / 255.0f), (float)(235.0f / 255.0f), 1.0f);
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindVertexArray(0);
   std::chrono::steady_clock::time_point next_frame = std::chrono::steady_clock::now();
   auto lastFrameTime = std::chrono::steady_clock::now();
   auto frameTime = env.getFrameTime();
   int frames = 0;
+
   // -----========= GŁÓWNA PĘTLA GRY =========-----
   while (!glfwWindowShouldClose(window)) {
     // Logika FPS
@@ -50,6 +63,8 @@ int main() {
     // ---====---
 
     glClear(GL_COLOR_BUFFER_BIT);
+
+    renderer.render();
 
     glfwSwapBuffers(window);
     glfwPollEvents();
